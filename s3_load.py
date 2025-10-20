@@ -2,6 +2,9 @@ import boto3
 from botocore.exceptions import ClientError
 import os
 
+BUCKET_NAME = "etl-demo-bucket1"
+REGION = "us-east-1"
+
 
 # creates (and returns) the s3 bucket that we will be working with
 def get_bucket(bucket_name, region):
@@ -47,7 +50,7 @@ def upload_to_bucket(bucket, file_name):
 
 
 
-bucket = get_bucket("etl-demo-bucket1", "us-east-1")
+bucket = get_bucket(BUCKET_NAME, REGION)
 
 file_names = os.listdir("data/")
 for name in file_names:

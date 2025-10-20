@@ -11,15 +11,20 @@ Installation steps assume Python3 is already successfully installed.
 
 ## Usage
 
+1. First, generate the data using `python3 generate_data.py` (make sure a 'data' directory has been created)
+2. Then, run `s3_load.py` to create a AWS S3 bucket and upload the data to it
+
 ## Project outline
 * Part 0a: Python (numpy) script to randomly-generate mock data in .csv, .pdf, and .txt formats.
 * Part 0b: Python (Boto3) script to establish an AWS S3 cloud storage location, add the randomly-generated data files.
 * Part 1: Extract data from S3 (boto3), perform transformations using Pandas
 * Part 2a: Load transformed data into a MySQL database via SQLAlchemy
 * Part 2b: Load transformed data into Snowflake using snowflake-connector-python
-* Part 3a: pull data from both sources back into Pandas via FastAPI call, perform data reconciliation in Python using Pandas and generate results report, running in Docker container
+* Part 3a: pull data from both sources back into Pandas via FastAPI call, perform data reconciliation in Python using Pandas and generate results report
 * Part 3b: train and run simple prediction model using scikit-learn, generate results report
 * Part 4: put reconciled data and results reports back into AWS S3 via Boto3
+
+Containerization: project is containerized using Docker. Once per minute, the program checks if any new files have been added to the AWS s3 storage bucket. If it finds new files to process, the ETL pipeline will automatically re-run.
 
 
 ## Commitments
