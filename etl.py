@@ -2,6 +2,8 @@ import boto3
 import io
 import pandas as pd
 from s3_load import BUCKET_NAME, REGION, get_bucket
+from my_sql import upload_to_sql_server
+from sf import upload_to_snowflake
 
 # This works, but ideally we don't have to physically download
 # files back onto the device in order to process them...
@@ -110,8 +112,6 @@ def transform(dfs):
         # finally, append new df to the list to return
         transformed_dfs.append(new_df)
 
-        print(new_df)
-
     # Finally, join all data to exclude non-unique IDs
     concat_df = pd.concat(transformed_dfs)
     unique_id_df = concat_df.drop_duplicates(subset=["ID"])
@@ -127,10 +127,12 @@ def etl():
 
     # 2: T: transform data
     transformed_df = transform(dfs)
-    print("FINAL DATA:")
-    print(transformed_df)
 
-    
+    # 3: L: Load data into MySQL server and Snowflake
+    # MySQL
+    upload_to_sql_server(transformed_df, "MidtermGrades")
+    upload_to_snowflake(transformed_df, "MidtermGrades")
+
 
 
 etl()
