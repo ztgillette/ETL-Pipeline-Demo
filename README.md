@@ -10,19 +10,17 @@ Installation steps assume Python3 is already successfully installed.
 4. This project uses MySQL. Download MySQL Enterprise and MySQL Workbench (linked below) and follow installation instructions. In MySQL Workbench, create a new schema. Then, create a .env file in the root project directory with the fields `MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST, and MYSQL_DB` (this information can be found after making the schema in MySQL Workbench).
 5. This project uses Snowflake. Create a Snowflake account (you get a free trial!). In Snowflake, run the following to create your database and schema: `CREATE DATABASE <put database name here>;`
 `CREATE SCHEMA IF NOT EXISTS <put database name here>.PUBLIC;` Now, in your .env file from step 4, add the following fields (you can find the values from within Snowflake): `SNOWFLAKE_USER, SNOWFLAKE_PASSWORD, SNOWFLAKE_ACCOUNT, SNOWFLAKE_DATABASE, SNOWFLAKE_SCHEMA, SNOWFLAKE_WAREHOUSE, SNOWFLAKE_ROLE`.
-
+6. If running via Docker containerization, Docker needs to be installed and a seperate .env.docker needs to be created. The .env.docker is identical to the above .env file except for the MYSQL_HOST field, which should be set to host.docker.internal (your computer).
 
 
 ## Usage
 
 ### One-off Use
 
-0. Ensure that MySQL Workbench is up and running, and the local MySQL server is running too.
 1. Run `python3 main.py` to generate new data, upload it to the AWS S3 bucket, and push the data from S3 through the ETL pipeline.
 
 ### Containerized Use
 
-0. Ensure that MySQL Workbench is up and running, and the local MySQL server is running too.
 1. Start up Docker container: run `docker build -t my-app-image .` to build the image and 
 `docker run --rm \
   -v "$PWD/data:/app/data" \
@@ -31,7 +29,7 @@ Installation steps assume Python3 is already successfully installed.
   -e AWS_PROFILE=default \
   my-app-image` to run the container.
 
-2. Run `python3 create_new_data.py` to create more data. The program running in the Docker container will detect that new data has been 
+2. Once the container is running, run `python3 create_new_data.py` (in a separate terminal console) to create more data. The program running in the Docker container will detect that new data has been 
 added to be processed, and will automatically run the remaining steps in the pipeline.
 
 ## Project outline
@@ -48,7 +46,7 @@ Containerization: project is containerized using Docker. Once per minute, the pr
 
 
 ## Commitments
-* No GPT use; rely on official documentation
+* No GPT use; rely on official documentation and Googling
 * Simple, readable code
 * Well-tested
 
