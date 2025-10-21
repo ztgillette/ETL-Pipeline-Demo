@@ -5,21 +5,18 @@ from s3_load import BUCKET_NAME, REGION, get_bucket
 from my_sql import upload_to_sql_server
 from sf import upload_to_snowflake
 
-# This works, but ideally we don't have to physically download
-# files back onto the device in order to process them...
-# def download_all_from_bucket():
 
-#     s3 = boto3.client('s3')
-#     bucket = get_bucket(BUCKET_NAME, REGION)
-
-#     for file_name in bucket.objects.all():
-
-#         path = "etl_data/s3_" + file_name.key
-#         s3.download_file(BUCKET_NAME, file_name.key, path)
-
-
-# Returns csv file from AWS S3 bucket in a pandas df format
 def download_from_bucket(bucket_name, file_name):
+    """
+    Gets data (as pandas df) from AWS S3 bucket
+
+    Args:
+        bucket_name (str): the name of the AWS S3 bucket
+        file_name (str): the name of the .csv file stored in the bucket
+
+    Returns:
+        pandas df: the data 
+    """
 
     s3 = boto3.client('s3')
 
@@ -28,24 +25,16 @@ def download_from_bucket(bucket_name, file_name):
 
     return df
 
-# Returns the a list of the names of all files that have been through the ETL pipeline
-# Use case: identify files NOT in list to know which to process in pipeline
-# TODO: make robust
-processed = set()
-def get_marked_processed_files():
-    return processed
 
-# Marks file as processed (so it won't be reprocessed)
-# TODO: make robust
-def mark_file_as_processed(file_name):
-    processed.add(file_name)
-
-# Extracts all non-processed files from AWS S3 bucket 
-# Returns a list of pandas df objects
 def extract():
+    """
+    Extracts data from AWS S3 bucket
 
-    # Get processed files
-    processed_files = list(get_marked_processed_files())
+    Returns:
+        list of pandas df objects: a list of all the data being extracted from the bucket
+        list (str): the file_names of all the .csv files being extracted
+    """
+
 
     # Get names of all files in AWS S3
     s3 = boto3.client('s3')
@@ -57,9 +46,7 @@ def extract():
     for file_name_obj in s3_file_name_objects:
 
         file_name = file_name_obj.key
-
-        if not file_name in processed_files:
-            to_process.append(file_name)
+        to_process.append(file_name)
 
     # Create df of files to process
     df_list = []
@@ -68,12 +55,19 @@ def extract():
         df = download_from_bucket(BUCKET_NAME, file_name)
         df_list.append(df)
 
-    return df_list
+    return df_list, to_process
 
 
-# Transforms all files that need to be processed
-# Returns a combined pandas df of all data
 def transform(dfs):
+    """
+    Transforms data so that it is ready to be loaded.
+
+    Args:
+        dfs (list of pandas df objects): a list of all the data to be transformed
+    
+    Returns:
+        pandas df object: a combined df of all transformed data
+    """
 
     transformed_dfs = []
 
@@ -85,7 +79,7 @@ def transform(dfs):
         new_df = new_df.dropna()
 
         # make all IDs 6-digit strings
-        new_df["ID"] = new_df["ID"].astype(int)
+        new_df["ID"] = new_df["ID"].astype(float).astype(int)
         new_df = new_df[(new_df["ID"] >= 1) & (new_df["ID"] <= 999999)]
         new_df["ID"] = new_df["ID"].astype(str)
         new_df["ID"] = new_df["ID"].apply(lambda x: "0"*(6-len(x)) + x)
@@ -121,9 +115,12 @@ def transform(dfs):
 
 
 def etl():
+    """
+    Calls each component of the ETL pipeline
+    """
 
     # 1: E: pull bucket contents from AWS S3 storage as pandas df
-    dfs = extract()
+    dfs, _ = extract()
 
     # 2: T: transform data
     transformed_df = transform(dfs)
@@ -132,7 +129,3 @@ def etl():
     # MySQL
     upload_to_sql_server(transformed_df, "MidtermGrades")
     upload_to_snowflake(transformed_df, "MidtermGrades")
-
-
-
-etl()

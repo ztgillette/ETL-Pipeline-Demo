@@ -1,8 +1,15 @@
 import pandas as pd
 import numpy as np
+import os
 
 
 def generate_np_data():
+    """
+    Randomly-generates realistic miderm grade data for students.
+
+    Returns:
+        numpy array: the data
+    """
 
     num_rows = np.random.randint(5, 500)
 
@@ -58,6 +65,15 @@ def generate_np_data():
 
 
 def generate_pd_data(np_data):
+    """
+    Converts numpy data into a pandas dataframe
+
+    Args:
+        np_data (numpy array object): data to be converted
+
+    Returns:
+        pandas df object
+    """
 
     # convert numerical data to a pandas df
     pd_data = pd.DataFrame(np_data)
@@ -78,6 +94,17 @@ def generate_pd_data(np_data):
 
 # To illistrate transform efforts later on, I intentionally mess up the data here
 def mess_up_data(df):
+    """
+    This function randomly changes the data to include erronious or missing values to
+    replicate the imperfections of real-world datasets and to justify the existance of the 
+    transform step of the ETL pipeline.
+
+    Args:
+        df (pandas df object): the data to be "messed up"
+
+    Returns:
+        pandas df object: the data after being "messed up"
+    """
 
     # Different messups depending on the column
     messup_functions = {
@@ -87,7 +114,6 @@ def mess_up_data(df):
             lambda x: "-1",
             lambda x: "0",
             lambda x: "999",
-            lambda x: "NOT ID!",
             lambda x: pd.NA,
             lambda x: None,
             lambda x: np.nan,
@@ -135,12 +161,11 @@ def mess_up_data(df):
             lambda x: x+100
 
         ]   
-
     }
 
 
     # number of messed-up data entries (1-5% of rows contain a messup)
-    num_messups = np.random.randint(int(len(df)/100), int(len(df)/20))
+    num_messups = np.random.randint(int(len(df)/100), max(int(len(df)/20), 1))
 
     for i in range(num_messups):
 
@@ -170,29 +195,48 @@ def mess_up_data(df):
 
 
 def generate_csv(df, name):
+    """
+    Creates a .csv file from a pandas df and places it in the /data folder
+
+    Args:
+        df (pandas df object): the data 
+        name (str): desired name of the .csv file
+    """
 
     df.to_csv('data/' + name, index=False)
 
 
 def create_csv_data():
+    """
+    Access point to randomly generate a random number of new data files.
+
+    Return:
+        int: number of new files created in the /data folder
+    """
 
     # generate a random number of data files
-    num_files = np.random.randint(0, 10)
+    num_new_files = np.random.randint(1, 10)
 
-    for i in range(num_files):
+    print("random number: ", num_new_files)
+
+    # number of existing data files
+    num_existing_files = len(os.listdir("data/"))
+
+    for i in range(num_new_files):
 
         np_data = generate_np_data()
         pd_data = generate_pd_data(np_data)
         messed_up_pd_data = mess_up_data(pd_data)
 
-        # TODO: make naming based on how many files are already in folder
-        name = "csv_data_" + str(i + 1) + ".csv"
+        name = "csv_data_" + str(i + 1 + num_existing_files) + ".csv"
 
         generate_csv(messed_up_pd_data, name)
 
+    return num_new_files
 
 
-create_csv_data()
+
+
 
 
 

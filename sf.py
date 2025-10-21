@@ -3,6 +3,12 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
 def get_engine():
+    """
+    Creates and returns an engine that can be used to interact with Snowflake from within Python.
+
+    Returns:
+        engine object: the engine object
+    """
 
     # load environment vars from .env
     load_dotenv()
@@ -16,7 +22,14 @@ def get_engine():
     return engine
 
 
-def upload_to_snowflake(df, table_name):
+def upload_to_snowflake(df, table_name) -> None:
+    """
+    Adds data from a pandas df to a given table in Snowflake.
+
+    Args:
+        df (pandas df object): the dataframe whose data will be added
+        table_name (str): the name of the Snowflake table in which to add the data
+    """
 
     engine = get_engine()
 

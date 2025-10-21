@@ -15,18 +15,34 @@ Installation steps assume Python3 is already successfully installed.
 
 ## Usage
 
-1. First, generate the data using `python3 generate_data.py` (make sure a 'data' directory has been created)
-2. Then, run `s3_load.py` to create a AWS S3 bucket and upload the data to it
+### One-off Use
+
+0. Ensure that MySQL Workbench is up and running, and the local MySQL server is running too.
+1. Run `python3 main.py` to generate new data, upload it to the AWS S3 bucket, and push the data from S3 through the ETL pipeline.
+
+### Containerized Use
+
+0. Ensure that MySQL Workbench is up and running, and the local MySQL server is running too.
+1. Start up Docker container: run `docker build -t my-app-image .` to build the image and 
+`docker run --rm \
+  -v "$PWD/data:/app/data" \
+  -v "$HOME/.aws:/root/.aws:ro" \
+  --env-file .env.docker \
+  -e AWS_PROFILE=default \
+  my-app-image` to run the container.
+
+2. Run `python3 create_new_data.py` to create more data. The program running in the Docker container will detect that new data has been 
+added to be processed, and will automatically run the remaining steps in the pipeline.
 
 ## Project outline
-* Part 0a: Python (numpy) script to randomly-generate mock data in .csv, .pdf, and .txt formats.
+* Part 0a: Python (numpy) script to randomly-generate mock data in .csv format.
 * Part 0b: Python (Boto3) script to establish an AWS S3 cloud storage location, add the randomly-generated data files.
 * Part 1: Extract data from S3 (boto3), perform transformations using Pandas
 * Part 2a: Load transformed data into a MySQL database via SQLAlchemy
-* Part 2b: Load transformed data into Snowflake using snowflake-connector-python
-* Part 3a: pull data from both sources back into Pandas via FastAPI call, perform data reconciliation in Python using Pandas and generate results report
-* Part 3b: train and run simple prediction model using scikit-learn, generate results report
-* Part 4: put reconciled data and results reports back into AWS S3 via Boto3
+* Part 2b: Load transformed data into Snowflake using SQLAlchemy
+* Part 3a: pull data from both sources back into Pandas via FastAPI call, perform data reconciliation in Python using Pandas and generate results report (TODO another day)
+* Part 3b: train and run simple prediction model using scikit-learn, generate results report (done in Snowflake currently)
+* Part 4: put reconciled data and results reports back into AWS S3 via Boto3 (TODO another day)
 
 Containerization: project is containerized using Docker. Once per minute, the program checks if any new files have been added to the AWS s3 storage bucket. If it finds new files to process, the ETL pipeline will automatically re-run.
 

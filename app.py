@@ -5,6 +5,12 @@ import time
 from etl import etl
 
 def main():
+    """
+    Main function; starting point for Docker containerized application.
+
+    Each minute code checks if there are new files that need to be processed.
+    If new files do exist, the files are automatically added to AWS S3 and the ETL pipeline is run.
+    """
 
     # count number of files in AWS S3 storage
     s3 = boto3.client('s3')
@@ -35,8 +41,6 @@ def main():
             for file_name in bucket.objects.all():
                 num_s3_files += 1
 
-            print("#local files", num_local_files)
-            print("#s3 files", num_s3_files)
             time.sleep(3)
 
         # rerun etl pipeline
